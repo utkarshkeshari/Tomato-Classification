@@ -1,13 +1,10 @@
 ## Tomato-Classification
 
 ### How to Use
-download the project 
-
-go to the Project Folder
-
-Run Python manage.py runserver
-
-Open a browser 127.0.0.1:8000
+- Download the project 
+- Go to the Project Folder
+- Run Python manage.py runserver
+- Open a browser 127.0.0.1:8000
 
 
 #### Technology Used
