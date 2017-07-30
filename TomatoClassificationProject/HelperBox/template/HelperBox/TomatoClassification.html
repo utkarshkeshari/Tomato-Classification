@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tomato Classification</title>
+</head>
+<body bgcolor="#A2D9CE">
+
+<table align="center" border="5px">
+
+    <tr>
+
+    </tr>
+
+    <tr bgcolor="#7FB3D5">
+        <td style="padding-left:10px">
+            <select name="test" id="classifier">
+                <option value="Logistic Regression" selected>Logistic Regression Classifier</option>
+                <option value="SVM">SVM Classifier</option>
+                <option value="KNN">KNN Classifier</option>
+                <option value="Decision Tree">Decision Tree Classifier</option>
+                <option value="XgBoost">XgBoost Classifier</option>
+                <option value="Random Forest">Random Forest</option>
+                <option value="GradientBoosting">Gradient Boosting Classifier</option>
+
+            </select>
+
+            <input type="button" value="Train Algorithm" id="train" onclick="ShowCurve()">
+        </td>
+
+        <!-- Learning Curve -->
+        <td>
+            <img id="learning" src="{% static 'learning.png' %}" alt="Learning Curve" height="400px" width="400px" >
+        </td>
+
+    </tr>
+
+    <tr bgcolor="#85C1E9" style="height:50px">
+        <td style="padding-left:10px">
+            <input type="button" value="Result on Test Data" id="Test">
+            <label id="accuracy"> </label>
+        </td>
+
+        <td style="padding-left:30px">
+            <div id="genTable">
+                <table id="confusionMatrix" style="margin:10px" border="1px">
+                    <tr>
+                        <th>Green</th>
+                        <th>Breakers</th>
+                        <th>Pink</th>
+                        <th>Red</th>
+                        <th>Red-Matured</th>
+                    </tr>
+                    <tr>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+                    <tr>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+                    <tr>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+                    <tr>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+                    <tr>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+
+    <tr bgcolor="#AED6F1" style="height:50px" >
+        <td>
+            <input type="text" id="filename" placeholder="Path of Image" />
+
+            <input type="button" value="Run Algorithm" id="runAlgo">
+        </td>
+
+        <td>
+            <div id="showClass"></div>
+
+        </td>
+    </tr>
+
+</table>
+
+
+<!-- Handle Button for File Path -->
+<script>
+
+    function ShowCurve(){
+
+        var clf = document.getElementById("classifier").value;
+        var img_src = '{% url "learning_curve" %}?classifier=' + clf
+        document.getElementById("learning").setAttribute("src",img_src);
+
+    }
+
+</script>
+
+
+<!-- Algorithm Prediction AJAX -->
+
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.8.2.js'></script>
+<script type="text/javascript">
+        $(document).ready(function() {
+            $("#runAlgo").click(function() {
+
+                    var ui_file_path = $("#filename").val();
+                    var ui_classifier = $("#classifier").val();
+
+
+                    $.ajax({
+                        url : "/predictData/",
+                        type : "POST",
+                        dataType: "json",
+                        data : {
+                            classifier:ui_classifier,
+                            path:ui_file_path,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+
+                            },
+                        success : function(json) {
+                            var predictedClass = json.predictedValue;
+                            $("#showClass").text(predictedClass);
+                        },
+                        error : function(xhr,errmsg,err) {
+                            alert("Either path is incorrect or Image size is small. Minimum Dimension of Image should be (600x600)\n" + xhr.status + ": " + xhr.responseText);
+                        }
+                    });
+
+                    return false;
+
+            });
+        });
+</script>
+
+
+
+
+<!-- Table Generation AJAX -->
+<script type="text/javascript">
+
+    $(document).ready(function() {
+        $("#Test").click(function() {
+
+            var ui_classifier = $("#classifier").val();
+
+
+            $.ajax({
+                url : "/tableData/",
+                type : "POST",
+                dataType: "json",
+                data : {
+                    classifier:ui_classifier,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+
+                    },
+                success : function(json) {
+                    createTable(json.confusionMatrix);
+                    $("#accuracy").text(json.accuracyScore);
+                },
+                error : function(xhr,errmsg,err) {
+                    alert(xhr.status + ": " + xhr.responseText);
+                }
+            });
+
+            return false;
+
+        });
+    });
+</script>
+
+
+
+<script>
+    function createTable(tableData) {
+
+        var confusionTable = document.getElementById('confusionMatrix');
+        var rLen = 6;
+
+        for (var i = 1; i < rLen; i++) {
+            confusionTable.rows[i].cells[0].innerHTML = tableData[i-1][0];
+            confusionTable.rows[i].cells[1].innerHTML = tableData[i-1][1];
+            confusionTable.rows[i].cells[2].innerHTML = tableData[i-1][2];
+            confusionTable.rows[i].cells[3].innerHTML = tableData[i-1][3];
+            confusionTable.rows[i].cells[4].innerHTML = tableData[i-1][4];
+
+        }
+    }
+
+</script>
+<!-- Table Ends -->
+
+</body>
+</html>
