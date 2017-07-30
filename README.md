@@ -2,8 +2,11 @@
 
 ### How to Use
 download the project 
+
 go to the Project Folder
+
 Run Python manage.py runserver
+
 Open a browser 127.0.0.1:8000
 
 
